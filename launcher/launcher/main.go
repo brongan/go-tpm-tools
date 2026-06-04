@@ -62,12 +62,6 @@ var exitMessage = "TEE container launcher exiting"
 var start time.Time
 
 func main() {
-	if _, err := os.Stat("/usr/share/oem/confidential_space/google_roots.pem"); err == nil {
-		os.Setenv("SSL_CERT_FILE", "/usr/share/oem/confidential_space/google_roots.pem")
-	} else {
-		panic(fmt.Errorf("failed to find google_roots.pem: %v", err))
-	}
-
 	uptime, err := getUptime()
 	if err != nil {
 		logger.Error(fmt.Sprintf("error reading VM uptime: %v", err))
@@ -190,6 +184,12 @@ func getUptime() (string, error) {
 }
 
 func startLauncher(launchSpec spec.LaunchSpec, serialConsole *os.File) error {
+	if _, err := os.Stat("/usr/share/oem/confidential_space/google_roots.pem"); err == nil {
+		os.Setenv("SSL_CERT_FILE", "/usr/share/oem/confidential_space/google_roots.pem")
+	} else {
+		return fmt.Errorf("failed to find google_roots.pem: %v", err)
+	}
+
 	logger.Info(fmt.Sprintf("Launch Spec: %+v", launchSpec.LogFriendly()))
 	containerdClient, err := containerd.New(defaults.DefaultAddress)
 	if err != nil {
