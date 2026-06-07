@@ -49,8 +49,11 @@ func createEKPublicECC(eccKey *ecdsa.PublicKey) (public tpm2.Public, err error) 
 	return public, err
 }
 
-func createPublic(private tpm2.Private) tpm2.Public {
-	publicHash := getHash(defaultNameAlg)
+func createPublic(private tpm2.Private) (tpm2.Public, error) {
+	publicHash, err := getHash(defaultNameAlg)
+	if err != nil {
+		return tpm2.Public{}, err
+	}
 	publicHash.Write(private.SeedValue)
 	publicHash.Write(private.Sensitive)
 	return tpm2.Public{
@@ -60,20 +63,24 @@ func createPublic(private tpm2.Private) tpm2.Public {
 			Alg:    tpm2.AlgNull,
 			Unique: publicHash.Sum(nil),
 		},
-	}
+	}, nil
 }
 
-func createPrivate(sensitive []byte) tpm2.Private {
+func createPrivate(sensitive []byte) (tpm2.Private, error) {
+	h, err := getHash(defaultNameAlg)
+	if err != nil {
+		return tpm2.Private{}, err
+	}
 	private := tpm2.Private{
 		Type:      tpm2.AlgKeyedHash,
 		AuthValue: nil,
-		SeedValue: make([]byte, getHash(defaultNameAlg).Size()),
+		SeedValue: make([]byte, h.Size()),
 		Sensitive: sensitive,
 	}
 	if _, err := io.ReadFull(rand.Reader, private.SeedValue); err != nil {
-		panic(err)
+		return tpm2.Private{}, err
 	}
-	return private
+	return private, nil
 }
 
 func createPublicPrivateSign(signingKey crypto.PrivateKey) (tpm2.Public, tpm2.Private, error) {
