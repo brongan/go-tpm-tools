@@ -30,8 +30,14 @@ func CreateImportBlob(ekPub crypto.PublicKey, sensitive []byte, pcrs *pb.PCRs) (
 	if err != nil {
 		return nil, err
 	}
-	private := createPrivate(sensitive)
-	public := createPublic(private)
+	private, err := createPrivate(sensitive)
+	if err != nil {
+		return nil, err
+	}
+	public, err := createPublic(private)
+	if err != nil {
+		return nil, err
+	}
 
 	return createImportBlobHelper(ek, public, private, pcrs)
 }
@@ -106,15 +112,19 @@ func createRSASeed(ek tpm2.Public) (seed, encryptedSeed []byte, err error) {
 	seedSize := ek.RSAParameters.Symmetric.KeyBits / 8
 	seed = make([]byte, seedSize)
 	if _, err := io.ReadFull(rand.Reader, seed); err != nil {
-		panic(err)
+		return nil, nil, err
 	}
 
 	ekPub, err := ek.Key()
 	if err != nil {
 		return nil, nil, err
 	}
+	h, err := getHash(ek.NameAlg)
+	if err != nil {
+		return nil, nil, err
+	}
 	encryptedSeed, err = rsa.EncryptOAEP(
-		getHash(ek.NameAlg),
+		h,
 		rand.Reader,
 		ekPub.(*rsa.PublicKey),
 		seed,
@@ -143,13 +153,17 @@ func createECCSeed(ek tpm2.Public) (seed, encryptedSeed []byte, err error) {
 	z, _ := curve.ScalarMult(ekPoint.X(), ekPoint.Y(), priv)
 	xBytes := eccIntToBytes(curve, x)
 
+	h, err := getHash(ek.NameAlg)
+	if err != nil {
+		return nil, nil, err
+	}
 	seed, err = tpm2.KDFe(
 		ek.NameAlg,
 		eccIntToBytes(curve, z),
 		"DUPLICATE",
 		xBytes,
 		eccIntToBytes(curve, ekPoint.X()),
-		getHash(ek.NameAlg).Size()*8)
+		h.Size()*8)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -227,26 +241,33 @@ func encryptSecret(secret, seed, nameEncoded []byte, ek tpm2.Public) ([]byte, er
 }
 
 func createHMAC(encryptedSecret, nameEncoded, seed []byte, hashAlg tpm2.Algorithm) ([]byte, error) {
+	h, err := getHash(hashAlg)
+	if err != nil {
+		return nil, err
+	}
 	macKey, err := tpm2.KDFa(
 		hashAlg,
 		seed,
 		"INTEGRITY",
 		/*contextU=*/ nil,
 		/*contextV=*/ nil,
-		getHash(hashAlg).Size()*8)
+		h.Size()*8)
 	if err != nil {
 		return nil, err
 	}
-	mac := hmac.New(func() hash.Hash { return getHash(hashAlg) }, macKey)
+	mac := hmac.New(func() hash.Hash {
+		h2, _ := getHash(hashAlg)
+		return h2
+	}, macKey)
 	mac.Write(encryptedSecret)
 	mac.Write(nameEncoded)
 	return mac.Sum(nil), nil
 }
 
-func getHash(hashAlg tpm2.Algorithm) hash.Hash {
+func getHash(hashAlg tpm2.Algorithm) (hash.Hash, error) {
 	create, err := hashAlg.Hash()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return create.New()
+	return create.New(), nil
 }
