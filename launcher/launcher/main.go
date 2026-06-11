@@ -95,7 +95,7 @@ func main() {
 		return
 	}
 
-	if err := os.MkdirAll(launcherfile.HostTmpPath, 0755); err != nil {
+	if err := os.MkdirAll(launcherfile.HostTmpPath, 0700); err != nil {
 		logger.Error(fmt.Sprintf("failed to create %s: %v", launcherfile.HostTmpPath, err))
 	}
 

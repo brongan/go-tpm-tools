@@ -162,10 +162,10 @@ func TestListFilesWithPrefix(t *testing.T) {
 	}
 
 	// Create test files
-	os.WriteFile(file1, []byte("File 1 content"), 0644)
-	os.WriteFile(file2, []byte("File 2 content"), 0644)
-	os.MkdirAll(filepath.Dir(file3), 0755)
-	os.WriteFile(file3, []byte("File 3 content"), 0644)
+	os.WriteFile(file1, []byte("File 1 content"), 0600)
+	os.WriteFile(file2, []byte("File 2 content"), 0600)
+	os.MkdirAll(filepath.Dir(file3), 0700)
+	os.WriteFile(file3, []byte("File 3 content"), 0600)
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("Dir: %s, Pattern: %s", tc.dir, tc.pattern), func(t *testing.T) {

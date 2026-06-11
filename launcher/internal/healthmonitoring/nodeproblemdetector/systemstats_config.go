@@ -102,7 +102,7 @@ func (ssc *SystemStatsConfig) WriteFile(path string) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal struct [%v]: %w", ssc, err)
 	}
-	return os.WriteFile(path, bytes, 0644)
+	return os.WriteFile(path, bytes, 0600)
 }
 
 // StartService starts Node Problem Detector.

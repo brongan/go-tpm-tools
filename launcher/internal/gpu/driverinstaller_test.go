@@ -48,7 +48,7 @@ func TestVerifyDriverDigest(t *testing.T) {
 			filePath := path.Join(tempDir, "file.run")
 
 			if tt.name != "Installed driver file does not exist" {
-				err := os.WriteFile(filePath, []byte(tt.fileContent), 0644)
+				err := os.WriteFile(filePath, []byte(tt.fileContent), 0600)
 				if err != nil {
 					t.Fatalf("failed to write to the driver digest testfile %s: %v", filePath, err)
 				}

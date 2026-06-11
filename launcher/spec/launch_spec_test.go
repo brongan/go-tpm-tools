@@ -441,7 +441,7 @@ func TestLaunchSpecUnmarshalJSONWithBadMounts(t *testing.T) {
 }
 
 func TestFetchExperiments(t *testing.T) {
-	if err := os.MkdirAll(launcherfile.HostTmpPath, 0755); err != nil {
+	if err := os.MkdirAll(launcherfile.HostTmpPath, 0700); err != nil {
 		t.Fatalf("failed to create HostTmpPath: %v", err)
 	}
 
@@ -458,7 +458,7 @@ func TestFetchExperiments(t *testing.T) {
 	defer func() {
 		// Restore or clean up
 		if backupExists {
-			_ = os.WriteFile(experimentsFile, backedUp, 0644)
+			_ = os.WriteFile(experimentsFile, backedUp, 0600)
 		} else {
 			_ = os.Remove(experimentsFile)
 		}
@@ -467,7 +467,7 @@ func TestFetchExperiments(t *testing.T) {
 	t.Run("Preloaded", func(t *testing.T) {
 		// Write mock pre-packaged experiment data
 		mockData := []byte(`{"EnableTestFeatureForImage":true,"EnableHealthMonitoring":true}`)
-		if err := os.WriteFile(experimentsFile, mockData, 0644); err != nil {
+		if err := os.WriteFile(experimentsFile, mockData, 0600); err != nil {
 			t.Fatalf("failed to write mock experiments: %v", err)
 		}
 

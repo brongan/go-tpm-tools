@@ -1,0 +1,1 @@
+## 2026-06-11 - [Insecure file permissions]\n**Vulnerability:** Insecure file and directory permissions (0644 for sensitive files and 0755 for tmp paths).\n**Learning:** tmp directories with sensitive contents should be created with 0700 permissions and tokens should be written with 0600 permissions.\n**Prevention:** Make sure all token files use 0600 and tmp folders 0750 or 0700
