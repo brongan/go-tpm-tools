@@ -1,0 +1,4 @@
+## 2024-05-24 - Insecure Directory and File Permissions in Token Handling
+**Vulnerability:** The launcher module created the host temporary directory (`launcherfile.HostTmpPath`) with `0755` permissions and wrote the attestation verifier token with `0644` permissions. This allowed any user on the system to potentially read the token or list the contents of the temporary directory, leading to a CWE-276 (Insecure Default Permissions) vulnerability.
+**Learning:** Even temporary directories and files that handle sensitive tokens need strict access controls. Go's `os.MkdirAll` and `os.WriteFile` will use the exact permissions provided (subject to umask), meaning permissive defaults like `0755` and `0644` expose sensitive data.
+**Prevention:** Always use `0700` for directories handling sensitive information and `0600` for files containing secrets or tokens.

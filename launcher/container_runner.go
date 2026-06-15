@@ -567,7 +567,8 @@ func (r *ContainerRunner) refreshToken(ctx context.Context) (time.Duration, erro
 
 	// Write to a temp file first.
 	tmpTokenPath := path.Join(launcherfile.HostTmpPath, tokenFileTmp)
-	if err = os.WriteFile(tmpTokenPath, token, 0644); err != nil {
+	// Security: write with 0600 permissions to prevent unauthorized access
+	if err = os.WriteFile(tmpTokenPath, token, 0600); err != nil {
 		return 0, fmt.Errorf("failed to write a tmp token file: %v", err)
 	}
 
@@ -597,7 +598,9 @@ func (r *ContainerRunner) fetchAndWriteToken(ctx context.Context) error {
 // retry specifies the refresher goroutine's retry policy.
 func (r *ContainerRunner) fetchAndWriteTokenWithRetry(ctx context.Context,
 	retry func() *backoff.ExponentialBackOff) error {
-	if err := os.MkdirAll(launcherfile.HostTmpPath, 0755); err != nil {
+	// Security: Use strict permissions (0700) for the host temp directory
+	// to prevent CWE-276 (insecure directory permissions) vulnerabilities.
+	if err := os.MkdirAll(launcherfile.HostTmpPath, 0700); err != nil {
 		return err
 	}
 	duration, err := r.refreshToken(ctx)
