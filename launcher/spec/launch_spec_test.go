@@ -441,7 +441,7 @@ func TestLaunchSpecUnmarshalJSONWithBadMounts(t *testing.T) {
 }
 
 func TestFetchExperiments(t *testing.T) {
-	if err := os.MkdirAll(launcherfile.HostTmpPath, 0755); err != nil {
+	if err := os.MkdirAll(launcherfile.HostTmpPath, 0700); err != nil {
 		t.Fatalf("failed to create HostTmpPath: %v", err)
 	}
 
