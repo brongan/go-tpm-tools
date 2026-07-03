@@ -1,0 +1,4 @@
+## 2026-07-03 - [Insecure File and Directory Permissions]
+**Vulnerability:** CWE-276 (Insecure Default Permissions) in `launcher/container_runner.go` and `launcher/launcher/main.go`. `HostTmpPath` was created with `0755` permissions, and the temporary token file was created with `0644` permissions, which could potentially expose sensitive information to unauthorized users.
+**Learning:** Hardcoded permissions in `os.MkdirAll` and `os.WriteFile` must be strictly controlled, especially when dealing with sensitive paths like `HostTmpPath` or token files.
+**Prevention:** Always default to restrictive permissions: `0700` for directories and `0600` for files containing sensitive data, unless broader access is explicitly required and justified. Use tools like `gosec` to automatically identify loose permissions.
