@@ -1,0 +1,4 @@
+## 2024-05-24 - [Insecure Permissions on Token File and Host Directory]
+**Vulnerability:** The launcher creates the host temporary directory `launcherfile.HostTmpPath` with 0755 permissions and writes the attestation token to a temporary file with 0644 permissions. This exposes sensitive token material and temporary files to read access by other local users, violating the principle of least privilege.
+**Learning:**  When dealing with temporary files and sensitive tokens, even within a containerized or managed environment, explicitly setting restrictive permissions is crucial. Relying on default umask or permissive defaults (like 0755/0644) is unsafe for sensitive data.
+**Prevention:** Always use strict permissions `0700` for directories handling sensitive state or temporary files, and `0600` for the files themselves containing secrets like tokens or keys. Review all `os.MkdirAll` and `os.WriteFile` calls that deal with sensitive paths.
